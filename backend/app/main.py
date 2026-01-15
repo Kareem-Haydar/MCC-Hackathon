@@ -3,13 +3,27 @@ import json
 
 load_dotenv()
 
+from app.config import GOOGLE_MAPS_API_KEY
+
 from app.agents import SerializerAgent
+from app.scraper import GMapsInstance
 
 def __main__():
-    serializer_agent = SerializerAgent()
-    ret = serializer_agent.serialize_prompt("I want to go to New York City for a conference with 100-200 attendees, and some of them are alergic to peanuts. My budget is 15 thousand. I need an indoor area with good acoustics and a stage")
+    gmaps = GMapsInstance()
+    results = gmaps.query_place(
+        location="New York City",
+        venue_type="coffee shop",
+        result_count=5
+    )
 
-    print(json.dumps(ret))
+    first = results[0]
+
+    print("✅ First result:")
+    print(f"Name: {first.get('name')}")
+    print(f"Address: {first.get('formatted_address')}")
+    print(f"Rating: {first.get('rating')}")
+    print(f"Total Reviews: {first.get('user_ratings_total')}")
+    print(f"Place ID: {first.get('place_id')}")
 
 if __name__ == "__main__":
     __main__()

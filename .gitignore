@@ -3,4 +3,3 @@ pyriteconfig.json
 *.py[cod] 
 
 **/__pycache__/
-

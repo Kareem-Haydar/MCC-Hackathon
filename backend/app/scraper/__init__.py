@@ -1,0 +1,1 @@
+from .mapsearch import GMapsInstance

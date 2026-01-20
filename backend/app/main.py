@@ -1,31 +1,98 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from typing import Optional
 import json
 
 load_dotenv()
 
-from app.config import GOOGLE_MAPS_API_KEY
+from app.config import validate_config
+from app import pipeline
 
-from app.agents import SerializerAgent
-from app.scraper import Map
+# Validate config on startup
+validate_config()
 
-def __main__():
-    gmaps = Map()
-    results = gmaps.query_venue(
-        location="New York City",
-        venue_type="coffee shop",
-        result_count=5
-    )
+# Initialize FastAPI app
+app = FastAPI(
+    title="Mosque Event Planner API",
+    description="API for planning mosque community events with venue and catering recommendations",
+    version="1.0.0"
+)
 
-    first = results[0]
+# Initialize pipeline
+planner = pipeline.PlannerPipeline()
 
-    print("✅ First result:")
-    print(f"Name: {first.get('name')}")
-    print(f"Address: {first.get('formatted_address')}")
-    print(f"Rating: {first.get('rating')}")
-    print(f"Total Reviews: {first.get('user_ratings_total')}")
-    print(f"Place ID: {first.get('place_id')}")
+# Request models
+class EventPlanRequest(BaseModel):
+    prompt: str
+    result_count: Optional[int] = 15
+    radius: Optional[int] = 20000
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "prompt": "Community iftar in NYC for 100 people on a budget of 10 thousand dollars, indian food preferred",
+                "result_count": 15,
+                "radius": 20000
+            }
+        }
 
+# Response models
+class EventPlanResponse(BaseModel):
+    venues: dict
+    catering: list
+    status: str = "success"
+
+@app.get("/")
+def read_root():
+    """Health check endpoint"""
+    return {
+        "status": "online",
+        "message": "Mosque Event Planner API is running",
+        "version": "1.0.0"
+    }
+
+@app.get("/health")
+def health_check():
+    """Detailed health check"""
+    return {
+        "status": "healthy",
+        "services": {
+            "api": "online",
+            "serializer": "online",
+            "maps": "online",
+            "bigagent": "online"
+        }
+    }
+
+@app.post("/api/plan-event", response_model=EventPlanResponse)
+def plan_event(request: EventPlanRequest):
+    """
+    Plan an event with venue and catering recommendations
+    
+    - **prompt**: Natural language description of the event
+    - **result_count**: Number of results to fetch from Google Maps (default: 15)
+    - **radius**: Search radius in meters (default: 20000)
+    """
+    try:
+        venue_res, catering_res = planner.plan(
+            prompt=request.prompt,
+            result_count=request.result_count or 15,
+            radius=request.radius or 20000
+        )
+        
+        return EventPlanResponse(
+            venues=venue_res,
+            catering=catering_res,
+            status="success"
+        )
+    
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+# For testing locally
 if __name__ == "__main__":
-    __main__()
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

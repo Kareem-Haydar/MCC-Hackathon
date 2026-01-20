@@ -4,32 +4,110 @@ import json
 import re
 
 class BigAgent:
+    """
+    AI agent for evaluating and ranking venue and catering options.
+    
+    Uses a large language model (Qwen3-Next-80B) to analyze venue and catering
+    options against event requirements, providing context-aware recommendations
+    with detailed explanations and notes.
+    
+    Attributes:
+        client (InferenceClient): HuggingFace inference client
+        model (str): Name of the LLM model used for analysis
+    """
+    
     def __init__(self):
-      self.client = InferenceClient(
-          api_key=HF_INFERENCE_KEY
-      )
+        """
+        Initialize the BigAgent with HuggingFace client and model.
+        """
+        self.client = InferenceClient(
+            api_key=HF_INFERENCE_KEY
+        )
 
-      self.model = "Qwen/Qwen3-Next-80B-A3B-Instruct"
+        self.model = "Qwen/Qwen3-Next-80B-A3B-Instruct"
 
     def _parse_response(self, response) -> dict:
+        """
+        Parse JSON from LLM response, handling various formats.
+        
+        Attempts to extract JSON from markdown code blocks or raw text,
+        while removing thinking tags and other noise from the response.
+        
+        Args:
+            response (str): Raw response text from the LLM
+        
+        Returns:
+            dict: Parsed JSON data
+        
+        Raises:
+            ValueError: If JSON cannot be found or parsed
+        """
         try:
             if response is None:
                 raise ValueError("No response from LLM")
 
+            # Remove thinking tags
             cleaned = re.sub(r"<think>.*?</think>", "", response, flags=re.DOTALL)
-            match = re.search(r"```json\s*(\{.*?\})\s*```", cleaned, re.DOTALL)
-
-            if not match:
-                raise ValueError("No JSON block found in LLM response")
-
-            json_str = match.group(1)
+            
+            # Try to find JSON in markdown code blocks first
+            match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", cleaned, re.DOTALL)
+            
+            if match:
+                json_str = match.group(1)
+            else:
+                # Try to find raw JSON object
+                match = re.search(r"(\{.*\})", cleaned, re.DOTALL)
+                if match:
+                    json_str = match.group(1)
+                else:
+                    # Print response for debugging
+                    print(f"\n=== LLM Response (first 500 chars) ===")
+                    print(response[:500])
+                    print(f"\n=== End Response ===")
+                    raise ValueError("No JSON found in LLM response")
 
             return json.loads(json_str)
 
+        except json.JSONDecodeError as e:
+            print(f"\n=== JSON Parse Error ===")
+            print(f"Error: {e}")
+            print(f"Attempted to parse: {json_str[:200] if 'json_str' in locals() else 'N/A'}") # type: ignore
+            print(f"=== End Error ===")
+            raise ValueError(f"Failed to parse JSON: {e}")
         except Exception as e:
             raise ValueError(f"Failed to parse LLM response: {e}")
 
     def process_venue(self, prompt: str) -> dict:
+        """
+        Analyze and rank venue options for an event.
+        
+        Evaluates venue candidates against event requirements including
+        capacity, event type suitability, rating, location, and other factors.
+        Returns top 3-5 recommendations with detailed explanations.
+        
+        Args:
+            prompt (str): JSON string containing event requirements and venue data.
+                         Expected format: {"data": {...event_requirements...}, "venues": [...]}
+        
+        Returns:
+            dict: Structured recommendations with format:
+                  {
+                    "recommended_venues": [
+                      {
+                        "name": str,
+                        "address": str,
+                        "rating": float,
+                        "price_level": int,
+                        "why_recommended": str,
+                        "notes": [str]
+                      }
+                    ],
+                    "general_notes": [str]
+                  }
+        
+        Raises:
+            ValueError: If LLM request fails or response cannot be parsed
+        """
         try :
             completion = self.client.chat.completions.create(
                 model=self.model,
@@ -98,6 +176,38 @@ class BigAgent:
             raise ValueError(f"Failed to process prompt: {e}")
 
     def process_catering(self, prompt: str) -> dict:
+        """
+        Analyze and rank catering options for an event.
+        
+        Evaluates catering candidates against event requirements including
+        dietary restrictions (halal, vegetarian, etc.), cuisine type, rating,
+        capacity, and pricing. Returns top 3-5 recommendations with detailed
+        explanations and dietary support information.
+        
+        Args:
+            prompt (str): JSON string containing event requirements and catering data.
+                         Expected format: {\"data\": {...event_requirements...}, \"catering\": [...]}
+        
+        Returns:
+            dict: Structured recommendations with format:
+                  {
+                    "recommended_catering": [
+                      {
+                        "name": str,
+                        "address": str,
+                        "rating": float,
+                        "price_level": int,
+                        "why_recommended": str,
+                        "dietary_support": [str],
+                        "notes": [str]
+                      }
+                    ],
+                    "general_notes": [str]
+                  }
+        
+        Raises:
+            ValueError: If LLM request fails or response cannot be parsed
+        """
         try :
             completion = self.client.chat.completions.create(
                 model=self.model,

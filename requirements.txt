@@ -1,5 +1,7 @@
 googlemaps
 huggingface-hub
-dotenv
+python-dotenv
 fastapi
 pydantic
+uvicorn[standard]
+httpx

@@ -37,33 +37,45 @@ class SerializerAgent:
                 messages=[
                     {
                         "role": "system",
-                        "content":
-                            "Serialize this prompt into JSON. Extract the following fields:\n"
-                            "- location (string)\n"
-                            "- event_type (string)\n"
-                            "- budget (string)\n"
-                            "- min_head_count (string)\n"
-                            "- max_head_count (string)\n"
-                            "- dietary_preferences (array of strings)\n"
-                            "- other_requirements (array of strings)\n\n"
-                            "Instructions for location:\n"
-                            "- don't use abbreviations (e.g., 'NYC' instead of 'New York City')\n"
-                            "Instructions for budget:\n"
-                            "- just put the number, no commas or other symbols\n"
-                            "Instructions for head_count:\n"
-                            "- If the text mentions 'X attendees' or 'around X people', use X for both min_head_count and max_head_count.\n"
-                            "- If the text mentions a single number of attendees, use that number for both min_head_count and max_head_count.\n"
-                            "- If a range is given (e.g., 100-150 attendees), use the lower number as min_head_count and the higher as max_head_count.\n"
-                            "Instructions for event_type:\n"
-                            "- Choose the event type from the following list only:\n"
-                            "  Conference, Seminar, Workshop, Lecture, Talk, Guest Speaker, Community Meeting, Town Hall, Celebration, Festival, Party, Wedding, Engagement, Religious Ceremony, Prayer Event, Ramadan Iftar, Eid Gathering, Charity, Fundraiser\n"
-                            "- If the type is not explicitly mentioned, set event_type to 'unknown'\n"
-                            "Instructions for other_requirements:\n"
-                            "- Only include items in other_requirements if the user explicitly mentions them.\n"
-                            "- Allowed requirements are: AV equipment, projector, microphone, sound system, accessible facilities, wheelchair access, indoor, outdoor, stage, podium, performance area, food, catering, dietary restrictions, parking, transport accessibility, decorations, setup requirements\n"
-                            "- Do not infer anything from the prompt text; only include explicitly mentioned requirements\n"
-                            "If information is missing, set the field to 'unknown'.\n\n"
-                            "User text:\n" + prompt
+                        "content": f"""
+                            Serialize this prompt into JSON. Extract the following fields:
+                            - location (string)
+                            - event_type (string)
+                            - budget (string)
+                            - min_head_count (string)
+                            - max_head_count (string)
+                            - cuisines (array of strings)
+                            - dietary_preferences (array of strings)
+                            - other_requirements (array of strings)
+
+                            Instructions for location:
+                            - don't use abbreviations (e.g., 'NYC' instead of 'New York City')
+
+                            Instructions for budget:
+                            - just put the number, no commas or other symbols
+
+                            Instructions for cuisines:
+                            - only include cuisines that are explicitly mentioned in the prompt, if none is mentioned, default to "American"
+
+                            Instructions for head_count:
+                            - If the text mentions 'X attendees' or 'around X people', use X for both min_head_count and max_head_count.
+                            - If the text mentions a single number of attendees, use that number for both min_head_count and max_head_count.
+                            - If a range is given (e.g., 100-150 attendees), use the lower number as min_head_count and the higher as max_head_count.
+
+                            Instructions for event_type:
+                            - Choose the event type from the following list only:
+                              Conference, Seminar, Workshop, Lecture, Talk, Guest Speaker, Community Meeting, Town Hall, Celebration, Festival, Party, Wedding, Engagement, Religious Ceremony, Prayer Event, Ramadan Iftar, Eid Gathering, Charity, Fundraiser
+                            - If the type is not explicitly mentioned, set event_type to 'unknown'
+
+                            Instructions for other_requirements:
+                            - Only include items in other_requirements if the user explicitly mentions them.
+                            - Allowed requirements are: AV equipment, projector, microphone, sound system, accessible facilities, wheelchair access, indoor, outdoor, stage, podium, performance area, food, catering, dietary restrictions, parking, transport accessibility, decorations, setup requirements
+                            - Do not infer anything from the prompt text; only include explicitly mentioned requirements
+
+                            If information is missing, set the field to 'unknown'.
+
+                            User text:
+                            {prompt}"""
                     }
                 ],
             )

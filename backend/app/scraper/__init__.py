@@ -1,1 +1,1 @@
-from .mapsearch import GMapsInstance
+from .mapsearch import Map

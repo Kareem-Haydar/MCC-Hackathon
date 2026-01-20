@@ -1,3 +1,5 @@
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from dotenv import load_dotenv
 import json
 
@@ -6,11 +8,11 @@ load_dotenv()
 from app.config import GOOGLE_MAPS_API_KEY
 
 from app.agents import SerializerAgent
-from app.scraper import GMapsInstance
+from app.scraper import Map
 
 def __main__():
-    gmaps = GMapsInstance()
-    results = gmaps.query_place(
+    gmaps = Map()
+    results = gmaps.query_venue(
         location="New York City",
         venue_type="coffee shop",
         result_count=5

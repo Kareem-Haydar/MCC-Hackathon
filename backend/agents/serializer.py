@@ -1,5 +1,5 @@
 from huggingface_hub import InferenceClient
-from app.config import HF_INFERENCE_KEY
+from backend.config import get_hf_key
 import json
 import re
 
@@ -21,7 +21,7 @@ class SerializerAgent:
         Initialize the SerializerAgent with HuggingFace client and model.
         """
         self.client = InferenceClient(
-            api_key=HF_INFERENCE_KEY
+            api_key=get_hf_key()
         )
 
         self.model = "HuggingFaceTB/SmolLM3-3B"

@@ -1,13 +1,14 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from typing import Optional
-import json
 
 load_dotenv()
 
-from app.config import validate_config
-from app import pipeline
+from backend.config import get_hf_key, validate_config
+from backend.pipeline import PlannerPipeline
+from backend.config import *
 
 # Validate config on startup
 validate_config()
@@ -19,8 +20,19 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+print(get_hf_key())
+print(get_google_maps_key())
+
 # Initialize pipeline
-planner = pipeline.PlannerPipeline()
+planner = PlannerPipeline()
 
 # Request models
 class EventPlanRequest(BaseModel):

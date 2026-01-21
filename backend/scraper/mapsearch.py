@@ -1,5 +1,5 @@
 from googlemaps import Client
-from app.config import GOOGLE_MAPS_API_KEY
+from backend.config import get_google_maps_key
 
 class Map:
     """
@@ -17,7 +17,7 @@ class Map:
         """
         Initialize the Map client with Google Maps API key.
         """
-        self.client = Client(key=GOOGLE_MAPS_API_KEY)
+        self.client = Client(key=get_google_maps_key())
 
     def _map_place(self, place: dict) -> dict:
         """

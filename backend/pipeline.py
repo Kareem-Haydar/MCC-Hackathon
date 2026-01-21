@@ -1,5 +1,5 @@
-from app.agents import SerializerAgent, BigAgent
-from app.scraper import Map
+from backend.agents import SerializerAgent, BigAgent
+from backend.scraper import Map
 
 import json
 

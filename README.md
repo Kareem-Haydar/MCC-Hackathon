@@ -7,12 +7,8 @@ An intelligent event planning system designed for mosque community centers, powe
 - [Overview](#overview)
 - [Features](#features)
 - [Architecture](#architecture)
-- [How Interactive Documentation Works](#how-interactive-documentation-works)
-- [Installation](#installation)
-- [Configuration](#configuration)
 - [Usage](#usage)
 - [API Reference](#api-reference)
-- [Testing](#testing)
 - [Code Documentation](#code-documentation)
 - [Examples](#examples)
 
@@ -117,99 +113,6 @@ The Mosque Event Planner API streamlines the event planning process by:
 
 ---
 
-## 📖 How Interactive Documentation Works
-
-FastAPI automatically generates **two types** of interactive documentation:
-
-### 1. Swagger UI (http://localhost:8000/docs)
-
-**How it works:**
-- FastAPI uses your route decorators, Pydantic models, and docstrings to generate an **OpenAPI specification**
-- Swagger UI renders this spec as an interactive web interface
-- You can test API calls directly in the browser
-
-**Key Features:**
-- **"Try it out"** button: Execute real API requests
-- **Request body editor**: Fill in JSON data with autocomplete
-- **Response viewer**: See actual API responses
-- **Schema browser**: Explore data models
-- **Authentication support**: Test with API keys/tokens
-
-**What makes it automatic:**
-```python
-@app.post("/api/plan-event", response_model=EventPlanResponse)
-def plan_event(request: EventPlanRequest):
-    """
-    Plan an event with venue and catering recommendations
-    
-    - **prompt**: Natural language description of the event
-    - **result_count**: Number of results to fetch (default: 15)
-    - **radius**: Search radius in meters (default: 20000)
-    """
-```
-
-FastAPI reads:
-- The route path: `/api/plan-event`
-- HTTP method: `POST`
-- Request model: `EventPlanRequest` (with Pydantic validation)
-- Response model: `EventPlanResponse`
-- Docstring: Appears as endpoint description
-- Type hints: Used for validation and documentation
-
-### 2. ReDoc (http://localhost:8000/redoc)
-
-Alternative documentation style:
-- More readable for browsing
-- Better for documentation sharing
-- Three-panel layout (navigation, content, code samples)
-- Generated from the same OpenAPI spec
-
-### Behind the Scenes
-
-```python
-# Pydantic models define the schema
-class EventPlanRequest(BaseModel):
-    prompt: str
-    result_count: Optional[int] = 15
-    radius: Optional[int] = 20000
-    
-    class Config:
-        json_schema_extra = {  # ← Shows up as example in docs!
-            "example": {
-                "prompt": "Community iftar in NYC...",
-                "result_count": 15,
-                "radius": 20000
-            }
-        }
-```
-
-**This generates:**
-- JSON Schema for validation
-- Example requests in the documentation
-- Input validation with error messages
-- Type conversion (string to int, etc.)
-
-### Accessing Documentation
-
-1. Start the server:
-   ```bash
-   uvicorn app.main:app --reload --port 8000
-   ```
-
-2. Open your browser:
-   - **Swagger UI**: http://localhost:8000/docs
-   - **ReDoc**: http://localhost:8000/redoc
-   - **OpenAPI JSON**: http://localhost:8000/openapi.json
-
-3. Test an endpoint:
-   - Click on `/api/plan-event`
-   - Click "Try it out"
-   - Edit the JSON request body
-   - Click "Execute"
-   - View the response below
-
----
-
 ## 🚀 Installation
 
 ### Prerequisites
@@ -227,7 +130,7 @@ class EventPlanRequest(BaseModel):
 
 2. **Create virtual environment**
    ```bash
-   python -m venv .venv
+   python -m venv .venv #or uv venv
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    ```
 
@@ -240,7 +143,7 @@ class EventPlanRequest(BaseModel):
 
 ## ⚙️ Configuration
 
-Create a `.env` file in the `backend` directory:
+Add your API keys in the `.env.example` file and rename it to `.env`:
 
 ```env
 # HuggingFace API Key (for AI models)
@@ -397,27 +300,6 @@ POST /api/plan-event
 
 ---
 
-## 🧪 Testing
-
-### Run Test Suite
-```bash
-python test_api.py
-```
-
-### Quick Test
-```bash
-python quick_test.py
-```
-
-### Manual Testing with Swagger UI
-1. Open http://localhost:8000/docs
-2. Click on `/api/plan-event`
-3. Click "Try it out"
-4. Edit the request body
-5. Click "Execute"
-
----
-
 ## 📝 Code Documentation
 
 All classes and public methods include comprehensive docstrings following Google style guide.
@@ -500,74 +382,3 @@ help(PlannerPipeline.plan)
 ```
 
 ---
-
-## 🛠️ Development
-
-### Project Structure
-```
-backend/
-├── app/
-│   ├── __init__.py
-│   ├── main.py              # FastAPI application
-│   ├── config.py            # Configuration & validation
-│   ├── pipeline.py          # Main orchestrator
-│   ├── agents/
-│   │   ├── __init__.py
-│   │   ├── serializer.py    # NLP agent
-│   │   └── bigagent.py      # Analysis agent
-│   └── scraper/
-│       ├── __init__.py
-│       └── mapsearch.py     # Google Maps client
-├── test_api.py              # Comprehensive tests
-├── quick_test.py            # Quick test script
-├── requirements.txt         # Dependencies
-├── .env                     # Environment variables
-├── API_TESTING.md          # Testing guide
-└── README.md               # This file
-```
-
-### Adding New Features
-
-1. **New Endpoint**: Add to `app/main.py`
-2. **New Agent**: Create in `app/agents/`
-3. **New Data Source**: Create in `app/scraper/`
-4. **Update Pipeline**: Modify `app/pipeline.py`
-
----
-
-## 🤝 Contributing
-
-When contributing:
-1. Add docstrings to all new classes and methods
-2. Update this README with new features
-3. Add tests for new functionality
-4. Run the test suite before submitting
-
----
-
-## 📄 License
-
-[Your License Here]
-
----
-
-## 🙏 Acknowledgments
-
-- **FastAPI**: Modern web framework for building APIs
-- **HuggingFace**: AI model hosting and inference
-- **Google Maps**: Location data and search
-- **Qwen Team**: Large language model
-- **SmolLM Team**: Lightweight language model
-
----
-
-## 📞 Support
-
-For questions or issues:
-- Check the interactive documentation: http://localhost:8000/docs
-- Review the API testing guide: [API_TESTING.md](API_TESTING.md)
-- Check docstrings: `help(ClassName)`
-
----
-
-**Built with ❤️ for the Muslim community**
